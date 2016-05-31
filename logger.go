@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -115,32 +117,29 @@ func (l *Logger) GetMinLevel() Level {
 	return l.minLevel
 }
 
-// Log :
+// Log : "module,1.0,2009-11-23,15:21:30.123456,debug,package1:src.go:56,this is a example"
 func (l *Logger) Log(calldepth int, lvl Level, msg string, t time.Time) {
 	if l.GetMinLevel() > lvl {
 		return
 	}
-
 	timeStr := t.Format("2006-01-02,15:04:05.000000")
 	var file string
 	var line int
 	var ok bool
-	_, file, line, ok = runtime.Caller(calldepth)
+	var pc uintptr
+	var pkg string
+	pc, file, line, ok = runtime.Caller(calldepth)
 	if !ok {
 		file = "???"
 		line = 0
+		pkg = "???"
+	} else {
+		file = filepath.Base(file)
+		pkg = PackageBase(runtime.FuncForPC(pc).Name())
 	}
-	short := file
-	for i := len(file) - 1; i > 0; i-- {
-		if file[i] == '/' {
-			short = file[i+1:]
-			break
-		}
-	}
-	file = short
 
 	m := l.GetModule() + "," + l.GetModuleVer() + "," + timeStr + "," +
-		lvl.String() + "," + file + ":" + strconv.Itoa(line) + "," + msg
+		lvl.String() + "," + pkg + ":" + file + ":" + strconv.Itoa(line) + "," + msg
 	if len(msg) == 0 || msg[len(msg)-1] != '\n' {
 		m += "\n"
 	}
@@ -194,6 +193,10 @@ func GetMinLevel() Level {
 	return std.GetMinLevel()
 }
 
+func StdLogger() *Logger {
+	return std
+}
+
 // Debug :
 func Debug(format string, v ...interface{}) {
 	std.Log(2, DEBUG, fmt.Sprintf(format, v...), time.Now())
@@ -232,4 +235,10 @@ func Fail(format string, v ...interface{}) {
 // Exception :
 func Exception(format string, v ...interface{}) {
 	std.Log(2, EXCEPTION, fmt.Sprintf(format, v...), time.Now())
+}
+
+// PackageBase : funcName string format : runtime.FuncForPC(pc).Name()
+func PackageBase(funcName string) string {
+	pkgStart := strings.LastIndex(funcName, "/") + 1
+	return funcName[pkgStart : strings.Index(funcName[pkgStart:], ".")+pkgStart]
 }

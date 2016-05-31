@@ -29,7 +29,8 @@ func TestLogger_Log(t *testing.T) {
 	_, file, line, _ := runtime.Caller(0)
 	file = file[strings.LastIndex(file, "/")+1:]
 
-	expected := "module,1.0,2009-11-23,15:21:30.123456,debug," + file + ":" + strconv.Itoa(line-1) + ",abc\n"
+	expected := "module,1.0,2009-11-23,15:21:30.123456,debug," +
+		"cilog_test" + ":" + file + ":" + strconv.Itoa(line-1) + ",abc\n"
 	if w.writed != expected {
 		t.Errorf("log expected %s, but %s", expected, w.writed)
 	}
@@ -55,6 +56,25 @@ func TestLogger_SetGet(t *testing.T) {
 	}
 	if cilog.GetMinLevel() != cilog.DEBUG {
 		t.Errorf("GetModule expected %s, but %s", cilog.DEBUG, cilog.GetMinLevel())
+	}
+}
+
+func TestLogger_PackageBase(t *testing.T) {
+	v1 := cilog.PackageBase("github.com/castisdev/cdn/cache.(*Server).Serve")
+	if v1 != "cache" {
+		t.Errorf("package expected %s, but %s", "cache", v1)
+	}
+	v2 := cilog.PackageBase("github.com/castisdev/cdn/cache/filecache.(*Server).readOne.func1")
+	if v2 != "filecache" {
+		t.Errorf("package expected %s, but %s", "filecache", v2)
+	}
+	v3 := cilog.PackageBase("github.com/castisdev/cdn/cache/filecache.NewServer")
+	if v3 != "filecache" {
+		t.Errorf("package expected %s, but %s", "filecache", v3)
+	}
+	v4 := cilog.PackageBase("main.main")
+	if v4 != "main" {
+		t.Errorf("package expected %s, but %s", "main", v4)
 	}
 }
 
