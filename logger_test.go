@@ -29,8 +29,8 @@ func TestLogger_Log(t *testing.T) {
 	_, file, line, _ := runtime.Caller(0)
 	file = file[strings.LastIndex(file, "/")+1:]
 
-	expected := "module,1.0,2009-11-23,15:21:30.123456,debug," +
-		"cilog_test" + ":" + file + ":" + strconv.Itoa(line-1) + ",abc\n"
+	expected := "module,1.0,2009-11-23,15:21:30.123456,Debug,cilog_test::" +
+		file + ":" + strconv.Itoa(line-1) + ",,abc\n"
 	if w.writed != expected {
 		t.Errorf("log expected %s, but %s", expected, w.writed)
 	}

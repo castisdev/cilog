@@ -25,20 +25,41 @@ const (
 	ERROR
 	FAIL
 	EXCEPTION
+	CRITICAL
 )
 
 func (l Level) String() string {
 	m := map[Level]string{
-		DEBUG:     "debug",
-		REPORT:    "report",
-		INFO:      "info",
-		SUCCESS:   "success",
-		WARNING:   "warning",
-		ERROR:     "error",
-		FAIL:      "fail",
-		EXCEPTION: "exception",
+		DEBUG:     "Debug",
+		REPORT:    "Report",
+		INFO:      "Information",
+		SUCCESS:   "Success",
+		WARNING:   "Warning",
+		ERROR:     "Error",
+		FAIL:      "Fail",
+		EXCEPTION: "Exception",
+		CRITICAL:  "Critical",
 	}
 	return m[l]
+}
+
+func LevelFromString(s string) (Level, error) {
+	m := map[string]Level{
+		"debug":     DEBUG,
+		"report":    REPORT,
+		"info":      INFO,
+		"success":   SUCCESS,
+		"warning":   WARNING,
+		"error":     ERROR,
+		"fail":      FAIL,
+		"exception": EXCEPTION,
+		"critical":  CRITICAL,
+	}
+	v, ok := m[s]
+	if !ok {
+		return DEBUG, fmt.Errorf("invalid level string [%s]", v)
+	}
+	return v, nil
 }
 
 // Logger :
@@ -117,7 +138,7 @@ func (l *Logger) GetMinLevel() Level {
 	return l.minLevel
 }
 
-// Log : "module,1.0,2009-11-23,15:21:30.123456,debug,package1:src.go:56,this is a example"
+// Log : "module,1.0,2009-11-23,15:21:30.123456,Debug,package1::src.go:56,,this is a example"
 func (l *Logger) Log(calldepth int, lvl Level, msg string, t time.Time) {
 	if l.GetMinLevel() > lvl {
 		return
@@ -139,7 +160,7 @@ func (l *Logger) Log(calldepth int, lvl Level, msg string, t time.Time) {
 	}
 
 	m := l.GetModule() + "," + l.GetModuleVer() + "," + timeStr + "," +
-		lvl.String() + "," + pkg + ":" + file + ":" + strconv.Itoa(line) + "," + msg
+		lvl.String() + "," + pkg + "::" + file + ":" + strconv.Itoa(line) + ",," + msg
 	if len(msg) == 0 || msg[len(msg)-1] != '\n' {
 		m += "\n"
 	}
@@ -235,6 +256,11 @@ func Fail(format string, v ...interface{}) {
 // Exception :
 func Exception(format string, v ...interface{}) {
 	std.Log(2, EXCEPTION, fmt.Sprintf(format, v...), time.Now())
+}
+
+// Critical :
+func Critical(format string, v ...interface{}) {
+	std.Log(2, CRITICAL, fmt.Sprintf(format, v...), time.Now())
 }
 
 // PackageBase : funcName string format : runtime.FuncForPC(pc).Name()
