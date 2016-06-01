@@ -86,7 +86,7 @@ func (dummyWriter) Write(out []byte) (int, error) {
 func BenchmarkLogger_WithDummyWriter(b *testing.B) {
 	cilog.Set(dummyWriter{}, "module", "1.0,", cilog.DEBUG)
 	for n := 0; n < b.N; n++ {
-		cilog.Info("this is log. line:%d", n)
+		cilog.Infof("this is log. line:%d", n)
 	}
 }
 
@@ -97,7 +97,7 @@ func BenchmarkLogger_WithLogWriter(b *testing.B) {
 
 	cilog.Set(cilog.NewLogWriter(dir, "module", 1024*1024), "module", "1.0,", cilog.DEBUG)
 	for n := 0; n < b.N; n++ {
-		cilog.Info("this is log. line:%d", n)
+		cilog.Infof("this is log. line:%d", n)
 	}
 }
 
@@ -112,14 +112,14 @@ func BenchmarkLogger_WithLogWriter_TwoGoroutines(b *testing.B) {
 	wg.Add(1)
 	go func() {
 		for i := 0; i < b.N; i++ {
-			cilog.Report("test1 log : %d", i)
+			cilog.Reportf("test1 log : %d", i)
 		}
 		wg.Done()
 	}()
 	wg.Add(1)
 	go func() {
 		for i := 0; i < b.N; i++ {
-			cilog.Report("test2 log : %d", i)
+			cilog.Reportf("test2 log : %d", i)
 		}
 		wg.Done()
 	}()

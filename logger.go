@@ -28,7 +28,8 @@ const (
 	CRITICAL
 )
 
-func (l Level) String() string {
+// Output :
+func (l Level) Output() string {
 	m := map[Level]string{
 		DEBUG:     "Debug",
 		REPORT:    "Report",
@@ -58,7 +59,7 @@ func LevelFromString(s string) (Level, error) {
 	}
 	v, ok := m[s]
 	if !ok {
-		return DEBUG, fmt.Errorf("invalid level string [%s]", v)
+		return DEBUG, fmt.Errorf("invalid level string [%s]", v.Output())
 	}
 	return v, nil
 }
@@ -161,7 +162,7 @@ func (l *Logger) Log(calldepth int, lvl Level, msg string, t time.Time) {
 	}
 
 	m := l.GetModule() + "," + l.GetModuleVer() + "," + timeStr + "," +
-		lvl.String() + "," + pkg + "::" + file + ":" + strconv.Itoa(line) + ",," + msg
+		lvl.Output() + "," + pkg + "::" + file + ":" + strconv.Itoa(line) + ",," + msg
 	if len(msg) == 0 || msg[len(msg)-1] != '\n' {
 		m += "\n"
 	}
@@ -220,48 +221,48 @@ func StdLogger() *Logger {
 	return std
 }
 
-// Debug :
-func Debug(format string, v ...interface{}) {
+// Debugf :
+func Debugf(format string, v ...interface{}) {
 	std.Log(2, DEBUG, fmt.Sprintf(format, v...), time.Now())
 }
 
-// Report :
-func Report(format string, v ...interface{}) {
+// Reportf :
+func Reportf(format string, v ...interface{}) {
 	std.Log(2, REPORT, fmt.Sprintf(format, v...), time.Now())
 }
 
-// Info :
-func Info(format string, v ...interface{}) {
+// Infof :
+func Infof(format string, v ...interface{}) {
 	std.Log(2, INFO, fmt.Sprintf(format, v...), time.Now())
 }
 
-// Success :
-func Success(format string, v ...interface{}) {
+// Successf :
+func Successf(format string, v ...interface{}) {
 	std.Log(2, SUCCESS, fmt.Sprintf(format, v...), time.Now())
 }
 
-// Warning :
-func Warning(format string, v ...interface{}) {
+// Warningf :
+func Warningf(format string, v ...interface{}) {
 	std.Log(2, WARNING, fmt.Sprintf(format, v...), time.Now())
 }
 
-// Error :
-func Error(format string, v ...interface{}) {
+// Errorf :
+func Errorf(format string, v ...interface{}) {
 	std.Log(2, ERROR, fmt.Sprintf(format, v...), time.Now())
 }
 
-// Fail :
-func Fail(format string, v ...interface{}) {
+// Failf :
+func Failf(format string, v ...interface{}) {
 	std.Log(2, FAIL, fmt.Sprintf(format, v...), time.Now())
 }
 
-// Exception :
-func Exception(format string, v ...interface{}) {
+// Exceptionf :
+func Exceptionf(format string, v ...interface{}) {
 	std.Log(2, EXCEPTION, fmt.Sprintf(format, v...), time.Now())
 }
 
-// Critical :
-func Critical(format string, v ...interface{}) {
+// Criticalf :
+func Criticalf(format string, v ...interface{}) {
 	std.Log(2, CRITICAL, fmt.Sprintf(format, v...), time.Now())
 }
 
