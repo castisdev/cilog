@@ -189,6 +189,25 @@ func TestLogWriter_WriteNotExistsDir(t *testing.T) {
 	}
 }
 
+func TestLogWriter_Write_DeleteFile_Write(t *testing.T) {
+	dir := uuid.NewV4().String()
+	os.Mkdir(dir, 0775)
+	defer os.RemoveAll(dir)
+
+	w := cilog.NewLogWriter(dir, "module", 5)
+	w.WriteWithTime([]byte("abc"), time.Date(2009, 11, 23, 0, 0, 0, 0, time.Local))
+	os.RemoveAll(dir)
+	w.WriteWithTime([]byte("def"), time.Date(2009, 11, 23, 0, 0, 0, 0, time.Local))
+
+	b, err := ioutil.ReadFile(filepath.Join(dir, "2009-11", "2009-11-23_module.log"))
+	if err != nil {
+		t.Error(err)
+	}
+	if string(b) != "def" {
+		t.Errorf("log expected def, but %s", string(b))
+	}
+}
+
 func BenchmarkLogWriter_Write(b *testing.B) {
 	dir := uuid.NewV4().String()
 	os.Mkdir(dir, 0775)

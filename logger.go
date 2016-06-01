@@ -43,6 +43,7 @@ func (l Level) String() string {
 	return m[l]
 }
 
+// LevelFromString :
 func LevelFromString(s string) (Level, error) {
 	m := map[string]Level{
 		"debug":     DEBUG,
@@ -214,6 +215,7 @@ func GetMinLevel() Level {
 	return std.GetMinLevel()
 }
 
+// StdLogger :
 func StdLogger() *Logger {
 	return std
 }

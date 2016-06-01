@@ -18,6 +18,7 @@ type LogWriter struct {
 	rotateSize int64
 	curDate    string
 	fp         *os.File
+	fpath      string
 }
 
 // NewLogWriter :
@@ -70,9 +71,12 @@ func (w *LogWriter) WriteWithTime(output []byte, t time.Time) (int, error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
 	if w.curDate != t.Format("2006-01-02") {
-		w.fp.Close()
-		w.fp = nil
+		w.closeFile()
 		w.curDate = t.Format("2006-01-02")
+	}
+
+	if _, err := os.Stat(w.fpath); os.IsNotExist(err) {
+		w.closeFile()
 	}
 
 	if w.fp == nil {
@@ -85,6 +89,7 @@ func (w *LogWriter) WriteWithTime(output []byte, t time.Time) (int, error) {
 			return 0, err
 		}
 		w.fp = f
+		w.fpath = p
 	}
 
 	n, err := w.fp.Write(output)
@@ -94,8 +99,7 @@ func (w *LogWriter) WriteWithTime(output []byte, t time.Time) (int, error) {
 		return 0, err
 	}
 	if size > w.rotateSize {
-		w.fp.Close()
-		w.fp = nil
+		w.closeFile()
 	}
 	return n, err
 }
@@ -103,4 +107,10 @@ func (w *LogWriter) WriteWithTime(output []byte, t time.Time) (int, error) {
 // Write :
 func (w *LogWriter) Write(output []byte) (int, error) {
 	return w.WriteWithTime(output, time.Now())
+}
+
+func (w *LogWriter) closeFile() {
+	w.fp.Close()
+	w.fp = nil
+	w.fpath = ""
 }
