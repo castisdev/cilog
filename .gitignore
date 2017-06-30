@@ -3,3 +3,4 @@ coverage.xml
 junit.xml
 lint.txt
 vet.txt
+debug.test

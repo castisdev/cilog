@@ -11,6 +11,8 @@ import (
 
 	"github.com/castisdev/cilog"
 	"github.com/satori/go.uuid"
+	"github.com/stretchr/testify/assert"
+	"gopkg.in/yaml.v2"
 )
 
 type stringWriter struct {
@@ -124,4 +126,162 @@ func BenchmarkLogger_WithLogWriter_TwoGoroutines(b *testing.B) {
 		wg.Done()
 	}()
 	wg.Wait()
+}
+
+func TestLevel_UnmarshalYAML(t *testing.T) {
+	tests := []struct {
+		name    string
+		data    string
+		level   cilog.Level
+		wantErr bool
+	}{
+		{
+			name:    "unmarshal debug",
+			data:    "level: debug",
+			level:   cilog.DEBUG,
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal report",
+			data:    "level: report",
+			level:   cilog.REPORT,
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal info",
+			data:    "level: info",
+			level:   cilog.INFO,
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal success",
+			data:    "level: success",
+			level:   cilog.SUCCESS,
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal warning",
+			data:    "level: warning",
+			level:   cilog.WARNING,
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal error",
+			data:    "level: error",
+			level:   cilog.ERROR,
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal fail",
+			data:    "level: fail",
+			level:   cilog.FAIL,
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal exception",
+			data:    "level: exception",
+			level:   cilog.EXCEPTION,
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal critical",
+			data:    "level: critical",
+			level:   cilog.CRITICAL,
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal invalid error",
+			data:    "level: unknown",
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		ret := struct {
+			Level cilog.Level `yaml:"level"`
+		}{}
+		if err := yaml.Unmarshal([]byte(tt.data), &ret); (err != nil) != tt.wantErr {
+			t.Errorf("Level.UnmarshalYAML() error = %v, wantErr %v", err, tt.wantErr)
+		}
+		assert.Equal(t, tt.level, ret.Level)
+	}
+}
+
+func TestLevel_MarshalYAML(t *testing.T) {
+	type testLevel struct {
+		Level cilog.Level `yaml:"level"`
+	}
+	tests := []struct {
+		name    string
+		data    testLevel
+		yamlStr string
+		wantErr bool
+	}{
+		{
+			name:    "unmarshal debug",
+			data:    testLevel{cilog.DEBUG},
+			yamlStr: "level: debug\n",
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal report",
+			data:    testLevel{cilog.REPORT},
+			yamlStr: "level: report\n",
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal info",
+			data:    testLevel{cilog.INFO},
+			yamlStr: "level: info\n",
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal success",
+			data:    testLevel{cilog.SUCCESS},
+			yamlStr: "level: success\n",
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal warning",
+			data:    testLevel{cilog.WARNING},
+			yamlStr: "level: warning\n",
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal error",
+			data:    testLevel{cilog.ERROR},
+			yamlStr: "level: error\n",
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal fail",
+			data:    testLevel{cilog.FAIL},
+			yamlStr: "level: fail\n",
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal exception",
+			data:    testLevel{cilog.EXCEPTION},
+			yamlStr: "level: exception\n",
+			wantErr: false,
+		},
+		{
+			name:    "unmarshal critical",
+			data:    testLevel{cilog.CRITICAL},
+			yamlStr: "level: critical\n",
+			wantErr: false,
+		},
+		{
+			name:    "marshal invalid error",
+			data:    testLevel{-1},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		var out []byte
+		var err error
+		if out, err = yaml.Marshal(tt.data); (err != nil) != tt.wantErr {
+			t.Errorf("Level.UnmarshalYAML() error = %v, wantErr %v", err, tt.wantErr)
+		}
+		assert.Equal(t, tt.yamlStr, string(out))
+	}
 }

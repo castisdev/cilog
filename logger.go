@@ -1,6 +1,7 @@
 package cilog
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -42,6 +43,49 @@ func (l Level) Output() string {
 		CRITICAL:  "Critical",
 	}
 	return m[l]
+}
+
+// String :
+func (l Level) String() string {
+	return l.Output()
+}
+
+// UnmarshalYAML :
+func (l *Level) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var s string
+	var err error
+	if err = unmarshal(&s); err != nil {
+		return err
+	}
+	if *l, err = LevelFromString(s); err != nil {
+		return err
+	}
+	return nil
+}
+
+// MarshalYAML :
+func (l Level) MarshalYAML() (interface{}, error) {
+	switch l {
+	case DEBUG:
+		return "debug", nil
+	case REPORT:
+		return "report", nil
+	case INFO:
+		return "info", nil
+	case SUCCESS:
+		return "success", nil
+	case WARNING:
+		return "warning", nil
+	case ERROR:
+		return "error", nil
+	case FAIL:
+		return "fail", nil
+	case EXCEPTION:
+		return "exception", nil
+	case CRITICAL:
+		return "critical", nil
+	}
+	return "", errors.New("invalid log level")
 }
 
 // LevelFromString :
