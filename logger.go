@@ -1,7 +1,6 @@
 package cilog
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -86,7 +85,7 @@ func (l Level) MarshalYAML() (interface{}, error) {
 	case CRITICAL:
 		return "critical", nil
 	}
-	return "", errors.New("invalid log level")
+	return "", fmt.Errorf("invalid log level, %d", int(l))
 }
 
 // LevelFromString :
@@ -104,7 +103,7 @@ func LevelFromString(s string) (Level, error) {
 	}
 	v, ok := m[s]
 	if !ok {
-		return DEBUG, fmt.Errorf("invalid level string [%s]", v.Output())
+		return DEBUG, fmt.Errorf("invalid level string [%s]", s)
 	}
 	return v, nil
 }
