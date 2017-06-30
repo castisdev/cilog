@@ -199,10 +199,13 @@ func TestLevel_UnmarshalYAML(t *testing.T) {
 		ret := struct {
 			Level cilog.Level `yaml:"level"`
 		}{}
-		if err := yaml.Unmarshal([]byte(tt.data), &ret); (err != nil) != tt.wantErr {
+		var err error
+		if err = yaml.Unmarshal([]byte(tt.data), &ret); (err != nil) != tt.wantErr {
 			t.Errorf("Level.UnmarshalYAML() error = %v, wantErr %v", err, tt.wantErr)
 		}
-		assert.Equal(t, tt.level, ret.Level)
+		if err == nil {
+			assert.Equal(t, tt.level, ret.Level, "%s", tt.name)
+		}
 	}
 }
 
@@ -282,6 +285,8 @@ func TestLevel_MarshalYAML(t *testing.T) {
 		if out, err = yaml.Marshal(tt.data); (err != nil) != tt.wantErr {
 			t.Errorf("Level.UnmarshalYAML() error = %v, wantErr %v", err, tt.wantErr)
 		}
-		assert.Equal(t, tt.yamlStr, string(out))
+		if err == nil {
+			assert.Equal(t, tt.yamlStr, string(out), "%s", tt.name)
+		}
 	}
 }

@@ -18,6 +18,7 @@ type Level int
 
 // Level enum
 const (
+	_           = iota
 	DEBUG Level = iota
 	REPORT
 	INFO
