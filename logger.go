@@ -47,7 +47,28 @@ func (l Level) Output() string {
 
 // String :
 func (l Level) String() string {
-	return l.Output()
+	switch l {
+	case DEBUG:
+		return "debug"
+	case REPORT:
+		return "report"
+	case INFO:
+		return "info"
+	case SUCCESS:
+		return "success"
+	case WARNING:
+		return "warning"
+	case ERROR:
+		return "error"
+	case FAIL:
+		return "fail"
+	case EXCEPTION:
+		return "exception"
+	case CRITICAL:
+		return "critical"
+	default:
+		return ""
+	}
 }
 
 // UnmarshalYAML :
@@ -65,27 +86,11 @@ func (l *Level) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // MarshalYAML :
 func (l Level) MarshalYAML() (interface{}, error) {
-	switch l {
-	case DEBUG:
-		return "debug", nil
-	case REPORT:
-		return "report", nil
-	case INFO:
-		return "info", nil
-	case SUCCESS:
-		return "success", nil
-	case WARNING:
-		return "warning", nil
-	case ERROR:
-		return "error", nil
-	case FAIL:
-		return "fail", nil
-	case EXCEPTION:
-		return "exception", nil
-	case CRITICAL:
-		return "critical", nil
+	str := l.String()
+	if str == "" {
+		return "", fmt.Errorf("invalid log level, %d", int(l))
 	}
-	return "", fmt.Errorf("invalid log level, %d", int(l))
+	return str, nil
 }
 
 // LevelFromString :
