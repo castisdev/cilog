@@ -90,6 +90,13 @@ func (w *LogWriter) WriteWithTime(output []byte, t time.Time) (int, error) {
 		}
 		w.fp = f
 		w.fpath = p
+
+		abspath, _ := filepath.Abs(p)
+		symfilepath := filepath.Join(filepath.Dir(filepath.Dir(abspath)), w.module+".log")
+		if _, err := os.Lstat(symfilepath); err == nil {
+			os.Remove(symfilepath)
+		}
+		os.Symlink(abspath, symfilepath)
 	}
 
 	n, err := w.fp.Write(output)

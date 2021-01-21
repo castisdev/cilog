@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/castisdev/cilog"
-	"github.com/satori/go.uuid"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 )
@@ -93,7 +93,8 @@ func BenchmarkLogger_WithDummyWriter(b *testing.B) {
 }
 
 func BenchmarkLogger_WithLogWriter(b *testing.B) {
-	dir := uuid.NewV4().String()
+	idv4, _ := uuid.NewRandom()
+	dir := idv4.String()
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -104,7 +105,8 @@ func BenchmarkLogger_WithLogWriter(b *testing.B) {
 }
 
 func BenchmarkLogger_WithLogWriter_TwoGoroutines(b *testing.B) {
-	dir := uuid.NewV4().String()
+	idv4, _ := uuid.NewRandom()
+	dir := idv4.String()
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
