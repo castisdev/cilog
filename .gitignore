@@ -4,3 +4,4 @@ junit.xml
 lint.txt
 vet.txt
 debug.test
+ut.dir/

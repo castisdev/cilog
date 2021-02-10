@@ -16,7 +16,7 @@ type LogWriter struct {
 	dir        string
 	module     string
 	rotateSize int64
-	curDate    string
+	curYearDay int
 	fp         *os.File
 	fpath      string
 }
@@ -27,12 +27,14 @@ func NewLogWriter(dir string, module string, rotateSize int64) *LogWriter {
 }
 
 func logIndex(fname string) int {
-	if matches, _ := regexp.MatchString("\\[[0-9]+\\]", fname); matches {
-		s := fname[strings.Index(fname, "[")+1 : strings.Index(fname, "]")]
-		i, _ := strconv.ParseInt(s, 10, 32)
-		return int(i)
+	start := strings.Index(fname, "[")
+	end := strings.Index(fname, "]")
+	if start == -1 || end == -1 {
+		return 0
 	}
-	return 0
+	s := fname[start+1 : end]
+	i, _ := strconv.ParseInt(s, 10, 32)
+	return int(i)
 }
 
 // LogPath :
@@ -41,15 +43,17 @@ func LogPath(dir string, module string, maxFileSize int64, now time.Time) string
 	monthDir := filepath.Join(dir, now.Format("2006-01"))
 	// e.g. "2014-08-12[1]_example.log" or "2014-08-12_example.log"
 	pattern := pre + "(\\[[0-9]+\\])?" + "_" + module + ".log"
+	regx, _ := regexp.Compile(pattern)
 	idx := 0
 	filepath.Walk(dir, func(path string, f os.FileInfo, err error) error {
 		if err != nil {
 			return nil
 		}
 		fname := filepath.Base(path)
-		if matches, _ := regexp.MatchString(pattern, fname); matches {
-			if idx <= logIndex(fname) {
-				idx = logIndex(fname)
+		if regx.MatchString(fname) {
+			curIdx := logIndex(fname)
+			if idx <= curIdx {
+				idx = curIdx
 				if f.Size() > maxFileSize {
 					idx++
 				}
@@ -61,7 +65,6 @@ func LogPath(dir string, module string, maxFileSize int64, now time.Time) string
 	log := pre + "_" + module + ".log"
 	if idx > 0 {
 		log = pre + "[" + strconv.Itoa(idx) + "]_" + module + ".log"
-
 	}
 	return filepath.Join(monthDir, log)
 }
@@ -70,9 +73,9 @@ func LogPath(dir string, module string, maxFileSize int64, now time.Time) string
 func (w *LogWriter) WriteWithTime(output []byte, t time.Time) (int, error) {
 	w.lock.Lock()
 	defer w.lock.Unlock()
-	if w.curDate != t.Format("2006-01-02") {
+	if w.curYearDay != t.YearDay() {
 		w.closeFile()
-		w.curDate = t.Format("2006-01-02")
+		w.curYearDay = t.YearDay()
 	}
 
 	if _, err := os.Stat(w.fpath); os.IsNotExist(err) {

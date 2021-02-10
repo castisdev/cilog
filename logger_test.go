@@ -2,6 +2,7 @@ package cilog_test
 
 import (
 	"os"
+	"path"
 	"runtime"
 	"strconv"
 	"strings"
@@ -94,7 +95,7 @@ func BenchmarkLogger_WithDummyWriter(b *testing.B) {
 
 func BenchmarkLogger_WithLogWriter(b *testing.B) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -106,7 +107,7 @@ func BenchmarkLogger_WithLogWriter(b *testing.B) {
 
 func BenchmarkLogger_WithLogWriter_TwoGoroutines(b *testing.B) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 

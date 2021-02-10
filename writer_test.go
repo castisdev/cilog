@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"testing"
 	"time"
@@ -14,7 +15,7 @@ import (
 
 func TestLogPath_NoLog(t *testing.T) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -27,7 +28,7 @@ func TestLogPath_NoLog(t *testing.T) {
 
 func TestLogPath_ExistsIndex0Log(t *testing.T) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -44,7 +45,7 @@ func TestLogPath_ExistsIndex0Log(t *testing.T) {
 
 func TestLogPath_ExistsBigLog(t *testing.T) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -64,7 +65,7 @@ func TestLogPath_ExistsBigLog(t *testing.T) {
 
 func TestLogPath_ExistsIndex2Log(t *testing.T) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -81,7 +82,7 @@ func TestLogPath_ExistsIndex2Log(t *testing.T) {
 
 func TestLogWriter_Write(t *testing.T) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -99,7 +100,7 @@ func TestLogWriter_Write(t *testing.T) {
 
 func TestLogWriter_WriteRotateBySize(t *testing.T) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -128,7 +129,7 @@ func TestLogWriter_WriteRotateBySize(t *testing.T) {
 
 func TestLogWriter_WriteRotateByNextDay(t *testing.T) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -155,7 +156,7 @@ func TestLogWriter_WriteRotateByNextDay(t *testing.T) {
 
 func TestLogWriter_WriteRotateByNextMonth(t *testing.T) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -182,7 +183,7 @@ func TestLogWriter_WriteRotateByNextMonth(t *testing.T) {
 
 func TestLogWriter_WriteNotExistsDir(t *testing.T) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	//os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -200,7 +201,7 @@ func TestLogWriter_WriteNotExistsDir(t *testing.T) {
 
 func TestLogWriter_Write_DeleteFile_Write(t *testing.T) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
@@ -220,11 +221,23 @@ func TestLogWriter_Write_DeleteFile_Write(t *testing.T) {
 
 func BenchmarkLogWriter_Write(b *testing.B) {
 	idv4, _ := uuid.NewRandom()
-	dir := idv4.String()
+	dir := path.Join("ut.dir", idv4.String())
 	os.Mkdir(dir, 0775)
 	defer os.RemoveAll(dir)
 
 	w := cilog.NewLogWriter(dir, "module", 1024*1024)
+	for n := 0; n < b.N; n++ {
+		w.Write([]byte(fmt.Sprintf("this is log. line:%d", n)))
+	}
+}
+
+func BenchmarkLogWriter_RotateBySize(b *testing.B) {
+	idv4, _ := uuid.NewRandom()
+	dir := path.Join("ut.dir", idv4.String())
+	os.Mkdir(dir, 0775)
+	defer os.RemoveAll(dir)
+
+	w := cilog.NewLogWriter(dir, "module", 32*1024)
 	for n := 0; n < b.N; n++ {
 		w.Write([]byte(fmt.Sprintf("this is log. line:%d", n)))
 	}
