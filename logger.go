@@ -31,18 +31,28 @@ const (
 
 // Output :
 func (l Level) Output() string {
-	m := map[Level]string{
-		DEBUG:     "Debug",
-		REPORT:    "Report",
-		INFO:      "Information",
-		SUCCESS:   "Success",
-		WARNING:   "Warning",
-		ERROR:     "Error",
-		FAIL:      "Fail",
-		EXCEPTION: "Exception",
-		CRITICAL:  "Critical",
+	switch l {
+	case DEBUG:
+		return "Debug"
+	case REPORT:
+		return "Report"
+	case INFO:
+		return "Information"
+	case SUCCESS:
+		return "Success"
+	case WARNING:
+		return "Warning"
+	case ERROR:
+		return "Error"
+	case FAIL:
+		return "Fail"
+	case EXCEPTION:
+		return "Exception"
+	case CRITICAL:
+		return "Critical"
+	default:
+		return ""
 	}
-	return m[l]
 }
 
 // String :
