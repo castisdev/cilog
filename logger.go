@@ -330,3 +330,22 @@ func PackageBase(funcName string) string {
 	pkgStart := strings.LastIndex(funcName, "/") + 1
 	return funcName[pkgStart : strings.Index(funcName[pkgStart:], ".")+pkgStart]
 }
+
+// Start :
+func Start() {
+	StartWithBufferSize(1024)
+}
+
+// StartWithBufferSize :
+func StartWithBufferSize(size int) {
+	if w, ok := std.writer.(*LogWriter); ok {
+		w.StartWithBufferSize(size)
+	}
+}
+
+// Stop :
+func Stop() {
+	if w, ok := std.writer.(*LogWriter); ok {
+		w.Stop()
+	}
+}

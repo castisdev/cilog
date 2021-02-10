@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 
@@ -231,6 +232,64 @@ func BenchmarkLogWriter_Write(b *testing.B) {
 	}
 }
 
+func BenchmarkLogWriter_Write_Async(b *testing.B) {
+	idv4, _ := uuid.NewRandom()
+	dir := path.Join("ut.dir", idv4.String())
+	os.Mkdir(dir, 0775)
+	defer os.RemoveAll(dir)
+
+	w := cilog.NewLogWriter(dir, "module", 1024*1024)
+	w.Start()
+	for n := 0; n < b.N; n++ {
+		w.Write([]byte(fmt.Sprintf("this is log. line:%d", n)))
+	}
+	w.Stop()
+}
+
+func BenchmarkLogWriter_Write_Goroutine(b *testing.B) {
+	idv4, _ := uuid.NewRandom()
+	dir := path.Join("ut.dir", idv4.String())
+	os.Mkdir(dir, 0775)
+	defer os.RemoveAll(dir)
+
+	w := cilog.NewLogWriter(dir, "module", 1024*1024)
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			for n := 0; n < b.N; n++ {
+				w.Write([]byte(fmt.Sprintf("this is log. line:%d", n)))
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+}
+
+func BenchmarkLogWriter_Write_Async_Goroutine(b *testing.B) {
+	idv4, _ := uuid.NewRandom()
+	dir := path.Join("ut.dir", idv4.String())
+	os.Mkdir(dir, 0775)
+	defer os.RemoveAll(dir)
+
+	w := cilog.NewLogWriter(dir, "module", 1024*1024)
+	w.Start()
+
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			for n := 0; n < b.N; n++ {
+				w.Write([]byte(fmt.Sprintf("this is log. line:%d", n)))
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	w.Stop()
+}
+
 func BenchmarkLogWriter_RotateBySize(b *testing.B) {
 	idv4, _ := uuid.NewRandom()
 	dir := path.Join("ut.dir", idv4.String())
@@ -241,4 +300,62 @@ func BenchmarkLogWriter_RotateBySize(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		w.Write([]byte(fmt.Sprintf("this is log. line:%d", n)))
 	}
+}
+
+func BenchmarkLogWriter_RotateBySize_Async(b *testing.B) {
+	idv4, _ := uuid.NewRandom()
+	dir := path.Join("ut.dir", idv4.String())
+	os.Mkdir(dir, 0775)
+	defer os.RemoveAll(dir)
+
+	w := cilog.NewLogWriter(dir, "module", 32*1024)
+	w.Start()
+	for n := 0; n < b.N; n++ {
+		w.Write([]byte(fmt.Sprintf("this is log. line:%d", n)))
+	}
+	w.Stop()
+}
+
+func BenchmarkLogWriter_RotateBySize_Goroutine(b *testing.B) {
+	idv4, _ := uuid.NewRandom()
+	dir := path.Join("ut.dir", idv4.String())
+	os.Mkdir(dir, 0775)
+	defer os.RemoveAll(dir)
+
+	w := cilog.NewLogWriter(dir, "module", 32*1024)
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			for n := 0; n < b.N; n++ {
+				w.Write([]byte(fmt.Sprintf("this is log. line:%d", n)))
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+}
+
+func BenchmarkLogWriter_RotateBySize_Async_Goroutine(b *testing.B) {
+	idv4, _ := uuid.NewRandom()
+	dir := path.Join("ut.dir", idv4.String())
+	os.Mkdir(dir, 0775)
+	defer os.RemoveAll(dir)
+
+	w := cilog.NewLogWriter(dir, "module", 32*1024)
+	w.Start()
+
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			for n := 0; n < b.N; n++ {
+				w.Write([]byte(fmt.Sprintf("this is log. line:%d", n)))
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	w.Stop()
 }

@@ -105,6 +105,20 @@ func BenchmarkLogger_WithLogWriter(b *testing.B) {
 	}
 }
 
+func BenchmarkLogger_WithLogWriter_Async(b *testing.B) {
+	idv4, _ := uuid.NewRandom()
+	dir := path.Join("ut.dir", idv4.String())
+	os.Mkdir(dir, 0775)
+	defer os.RemoveAll(dir)
+
+	cilog.Set(cilog.NewLogWriter(dir, "module", 1024*1024), "module", "1.0,", cilog.DEBUG)
+	cilog.Start()
+	for n := 0; n < b.N; n++ {
+		cilog.Infof("this is log. line:%d", n)
+	}
+	cilog.Stop()
+}
+
 func BenchmarkLogger_WithLogWriter_TwoGoroutines(b *testing.B) {
 	idv4, _ := uuid.NewRandom()
 	dir := path.Join("ut.dir", idv4.String())
@@ -140,7 +154,7 @@ func BenchmarkLogger_WithLogWriter_MultiGoroutines(b *testing.B) {
 	cilog.Set(cilog.NewLogWriter(dir, "module", 1024*1024), "module", "1.0,", cilog.DEBUG)
 
 	var wg sync.WaitGroup
-	for i := 0; i < 50; i++ {
+	for i := 0; i < 10; i++ {
 		wg.Add(1)
 		go func() {
 			for i := 0; i < b.N; i++ {
@@ -150,6 +164,30 @@ func BenchmarkLogger_WithLogWriter_MultiGoroutines(b *testing.B) {
 		}()
 	}
 	wg.Wait()
+}
+
+func BenchmarkLogger_WithLogWriter_MultiGoroutines_Async(b *testing.B) {
+	idv4, _ := uuid.NewRandom()
+	dir := path.Join("ut.dir", idv4.String())
+	os.Mkdir(dir, 0775)
+	defer os.RemoveAll(dir)
+
+	cilog.Set(cilog.NewLogWriter(dir, "module", 1024*1024), "module", "1.0,", cilog.DEBUG)
+	cilog.Start()
+
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			for i := 0; i < b.N; i++ {
+				cilog.Reportf("test1 log : %d", i)
+			}
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	cilog.Stop()
 }
 
 func TestLevel_UnmarshalYAML(t *testing.T) {

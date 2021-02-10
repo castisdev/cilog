@@ -10,6 +10,11 @@ import (
 	"time"
 )
 
+type logMsg struct {
+	output []byte
+	t      time.Time
+}
+
 // LogWriter :
 type LogWriter struct {
 	lock       sync.Mutex
@@ -19,6 +24,7 @@ type LogWriter struct {
 	curYearDay int
 	fp         *os.File
 	fpath      string
+	queue      chan logMsg
 }
 
 // NewLogWriter :
@@ -71,8 +77,10 @@ func LogPath(dir string, module string, maxFileSize int64, now time.Time) string
 
 // WriteWithTime :
 func (w *LogWriter) WriteWithTime(output []byte, t time.Time) (int, error) {
-	w.lock.Lock()
-	defer w.lock.Unlock()
+	if w.queue == nil {
+		w.lock.Lock()
+		defer w.lock.Unlock()
+	}
 	if w.curYearDay != t.YearDay() {
 		w.closeFile()
 		w.curYearDay = t.YearDay()
@@ -116,11 +124,44 @@ func (w *LogWriter) WriteWithTime(output []byte, t time.Time) (int, error) {
 
 // Write :
 func (w *LogWriter) Write(output []byte) (int, error) {
-	return w.WriteWithTime(output, time.Now())
+	if w.queue == nil {
+		return w.WriteWithTime(output, time.Now())
+	}
+
+	w.queue <- logMsg{output, time.Now()}
+	return len(output), nil
 }
 
 func (w *LogWriter) closeFile() {
 	w.fp.Close()
 	w.fp = nil
 	w.fpath = ""
+}
+
+// Start :
+func (w *LogWriter) Start() {
+	w.StartWithBufferSize(1024)
+}
+
+// StartWithBufferSize :
+func (w *LogWriter) StartWithBufferSize(size int) {
+	w.queue = make(chan logMsg, size)
+	go w.serve()
+}
+
+// Stop :
+func (w *LogWriter) Stop() {
+	close(w.queue)
+}
+
+func (w *LogWriter) serve() {
+	for {
+		select {
+		case msg, ok := <-w.queue:
+			if !ok {
+				return
+			}
+			w.WriteWithTime(msg.output, msg.t)
+		}
+	}
 }
